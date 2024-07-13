@@ -2,17 +2,28 @@ import { useParams } from "react-router-dom";
 import { useAppDispatch } from "../redux/hooks";
 import { addItem } from "../redux/features/cart/cartSlice";
 import { useGetProductByIdQuery } from "../redux/features/products/productsApi";
+import { toast } from "sonner";
 
 const ProductsDetails = () => {
 	const { id } = useParams();
 
 	const dispatch = useAppDispatch();
-	const { data: product, isLoading } = useGetProductByIdQuery(id);
-	console.log("🚀 ~ ProductsDetails ~ product:", product)
+	const { data, isLoading } = useGetProductByIdQuery(id);
+	const product = data?.data;
 
 	const handleAddToCart = () => {
-		if (product) {
-			dispatch(addItem({ ...product, quantity: 1 }));
+		const toastId = toast.loading("Loading in");
+		try {
+			if (product) {
+				dispatch(addItem({ ...product, quantity: 1 }));
+			}
+
+			toast.success(`This item is added to cart successfully! `, {
+				id: toastId,
+				duration: 4000,
+			});
+		} catch (err) {
+			toast.error("Something went wrong", { id: toastId, duration: 2000 });
 		}
 	};
 
@@ -32,7 +43,7 @@ const ProductsDetails = () => {
 	}
 
 	return (
-		<div className="max-w-4xl mx-auto p-6">
+		<div className="max-w-4xl mx-auto p-6 h-[80vh] flex justify-center items-center">
 			<div className="flex flex-col md:flex-row items-center">
 				<img
 					src={product?.image_url}
@@ -43,7 +54,7 @@ const ProductsDetails = () => {
 					<h2 className="text-3xl font-bold">{product?.product_name}</h2>
 					<p className="text-gray-600 mt-2">{product?.description}</p>
 					<p className="text-xl font-semibold mt-4">
-						${product?.price.toFixed(2)}
+						${product?.price?.toFixed(2)}
 					</p>
 					<button
 						onClick={handleAddToCart}
